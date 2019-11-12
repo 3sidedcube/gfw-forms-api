@@ -106,25 +106,32 @@ class ReportsRouter {
 
         // PATCH templateId onto area
         // Remove report if PATCH fails
+        //@todo testing
         if (request.areaOfInterest) {
             const reportId = report._id.toString();
-            try {
-                const result = yield ctRegisterMicroservice.requestToMicroservice({
-                    uri: `/v1/area/${request.areaOfInterest}`,
-                    method: 'PATCH',
-                    json: true,
-                    body: {
-                        templateId: reportId,
-                        userId: this.state.loggedUser.id
-                    }
-                });
-            } catch (e) {
-                const result = yield ReportsModel.remove({ _id: reportId });
-                logger.error('request to microservice failed');
-                logger.error(e);
-                this.throw(500, 'Error creating templates: patch to area failed');
-                return;
+            let AOI = request.areaOfInterest;
+            for (let i = 0; i < AOI.length; i++) {
+                try {
+                    logger.info(`PATCHing new area of interest ${request.oldAreaOfInterest}...`);
+
+                    const result = yield ctRegisterMicroservice.requestToMicroservice({
+                        uri: '/area/' + AOI[i],
+                        method: 'PATCH',
+                        json: true,
+                        body: {
+                            templateId: {reportId},
+                            userId: this.state.loggedUser.id
+                        }
+                    });
+                } catch (e) {
+                    const result = yield ReportsModel.remove({_id: reportId});
+                    logger.error('request to microservice failed');
+                    logger.error(e);
+                    this.throw(500, 'Error creating templates: patch to area failed');
+                    return;
+                }
             }
+
         }
 
         this.body = ReportsSerializer.serialize(report);
@@ -177,6 +184,11 @@ class ReportsRouter {
             return;
         }
 
+        // add questions to the model to update if they are included
+        if (request.questions) {
+            report.questions = request.questions;
+        }
+
         // props allow to change even with answers
         if (request.name) {
             report.name = request.name;
@@ -194,17 +206,25 @@ class ReportsRouter {
         if (this.state.loggedUser.role === 'ADMIN' && request.public) {
             report.public = request.public;
         }
-
+        // compare old area to new area to find if items exists
+        let areasToRemove = [];
+        if(request.oldAreaOfInterest) {
+             areasToRemove = request.areaOfInterest.filter(elementToCompare =>
+                !request.oldAreaOfInterest.includes(elementToCompare)
+            );
+        }
         // PATCH templateId onto area
         // Remove report if PATCH fails
-        if (request.areaOfInterest !== request.oldAreaOfInterest) {
-
+        if (areasToRemove) {
+            //@todo  testing
             // remove old area
             if (request.oldAreaOfInterest) {
                 logger.info(`PATCHing old area of interest ${request.oldAreaOfInterest}...`);
                 try {
+                    logger.error(request.oldAreaOfInterest + ' testing');
+
                     const result = yield ctRegisterMicroservice.requestToMicroservice({
-                        uri: `/v1/area/${request.oldAreaOfInterest}`,
+                        uri: `/area/${request.oldAreaOfInterest}`,
                         method: 'PATCH',
                         json: true,
                         body: {
@@ -218,24 +238,27 @@ class ReportsRouter {
                     return;
                 }
             }
-
+            //@todo testing
             // PATCH new area
             if (request.areaOfInterest) {
                 logger.info(`PATCHing new area of interest ${request.oldAreaOfInterest}...`);
-                try {
-                    const result = yield ctRegisterMicroservice.requestToMicroservice({
-                        uri: `/v1/area/${request.areaOfInterest}`,
-                        method: 'PATCH',
-                        json: true,
-                        body: {
-                            templateId: this.params.id,
-                            userId: this.state.loggedUser.id
+                let AOI = request.areaOfInterest;
+                for (let i = 0; i < AOI.length; i++) {
+                        try {
+                            const result = yield ctRegisterMicroservice.requestToMicroservice({
+                                uri: '/area/' + AOI[i],
+                                method: 'PATCH',
+                                json: true,
+                                body: {
+                                    templateId: [this.params.id],
+                                    userId: this.state.loggedUser.id
+                                }
+                            });
+                        } catch (e) {
+                            logger.error(e);
+                            this.throw(500, 'PATCHing new area faileds letes see');
+                            return;
                         }
-                    });
-                } catch (e) {
-                    logger.error(e);
-                    this.throw(500, 'PATCHing new area failed');
-                    return;
                 }
             }
         }
@@ -248,7 +271,7 @@ class ReportsRouter {
         yield report.save();
         this.body = ReportsSerializer.serialize(report);
     }
-
+    //@todo change where multiple deletes
     static * delete() {
         const role = this.state.loggedUser.role;
         const aoi = this.state.query && this.state.query.aoi !== null ? this.state.query.aoi.split(',') : null;
@@ -265,7 +288,7 @@ class ReportsRouter {
                 logger.info(`PATCHing area ${aoi[i]} to remove template association...`);
                 try {
                     const result = yield ctRegisterMicroservice.requestToMicroservice({
-                        uri: `/v1/area/${aoi[i]}`,
+                        uri: `/area/${aoi[i]}`,
                         method: 'PATCH',
                         json: true,
                         body: {

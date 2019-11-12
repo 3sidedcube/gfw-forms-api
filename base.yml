@@ -9,7 +9,6 @@ base:
 mongo:
   image: mongo
   container_name: gfw-forms-mongo
-  command: --smallfiles
   ports:
     - "27017"
   volumes:

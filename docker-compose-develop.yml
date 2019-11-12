@@ -8,13 +8,13 @@ develop:
   environment:
     CT_REGISTER_MODE: auto
     NODE_ENV: dev
-    QUEUE_URL: redis://mymachine:6379
+    QUEUE_URL: http://mymachine.test:16379
     QUEUE_PROVIDER: redis
     QUEUE_NAME: mail
-    CT_URL: http://mymachine:9000
-    LOCAL_URL: http://mymachine:4400
+    CT_URL: http://mymachine.test:9000
+    LOCAL_URL: http://mymachine.test:4400
     WRI_MAIL_RECIPIENTS: <mails>
-    CT_TOKEN: token
+    CT_TOKEN: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVkYmFjMDQzMmIwOTc0MDAyMDYxMGRjZiIsInJvbGUiOiJBRE1JTiIsInByb3ZpZGVyIjoidHdpdHRlciIsImVtYWlsIjpudWxsLCJjcmVhdGVkQXQiOjE1NzMwNDk3NzM3MzcsInBob3RvIjoiaHR0cHM6Ly9hYnMudHdpbWcuY29tL3N0aWNreS9kZWZhdWx0X3Byb2ZpbGVfaW1hZ2VzL2RlZmF1bHRfcHJvZmlsZV9ub3JtYWwucG5nIiwibmFtZSI6ImphY2siLCJpYXQiOjE1NzMwNDk3NzN9.LSmjLg5p4QiwcquNxNJqra4ftnhHqX40UZvYRrmTpWw
     GOOGLE_PRIVATE_KEY: <key>
     GOOGLE_PROJECT_EMAIL: <mail>
     TARGET_SHEET_ID: <sheet>
